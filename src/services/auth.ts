@@ -12,7 +12,7 @@ export class AuthService {
   private isGapiLoaded = false;
 
   // Google OAuth configuration
-  private readonly CLIENT_ID = '369978023118-k82avsiu1l2t0nsmnk9u4u7p1t567l9t.apps.googleusercontent.com';
+  private readonly CLIENT_ID = '369978023118-tvsv9epnt75tbavd59erqj0qav7b2n2o.apps.googleusercontent.com';
   private readonly SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses.readonly',
     'https://www.googleapis.com/auth/classroom.rosters.readonly',
