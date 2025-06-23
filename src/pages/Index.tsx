@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import SignInView from '@/components/SignInView';
 import MenuView from '@/components/MenuView';
@@ -5,6 +6,7 @@ import CoursesList from '@/components/CoursesList';
 import CourseDetailView from '@/components/CourseDetailView';
 import ChatView from '@/components/ChatView';
 import { AuthService } from '@/services/auth';
+import { ClassroomAPI } from '@/services/classroomApi';
 import { ChatService } from '@/services/chatService';
 import { Course } from '@/types/Course';
 import { ChatMessage } from '@/types/ChatMessage';
@@ -22,32 +24,11 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentUser, setCurrentUser] = useState('john.doe@example.com');
-
-  // Mock courses data
-  const mockCourses: Course[] = [
-    {
-      id: 'course-1',
-      name: 'Mathematics 101',
-      section: 'Section A',
-      description: 'Introduction to basic mathematics concepts',
-      teacherProfile: {
-        name: 'Dr. Smith',
-        emailAddress: 'dr.smith@school.edu'
-      }
-    },
-    {
-      id: 'course-2',
-      name: 'English Literature',
-      section: 'Section B',
-      description: 'Exploring classic and modern literature',
-      teacherProfile: {
-        name: 'Prof. Johnson',
-        emailAddress: 'prof.johnson@school.edu'
-      }
-    }
-  ];
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
 
   const authService = AuthService.getInstance();
+  const classroomAPI = ClassroomAPI.getInstance();
   const chatService = ChatService.getInstance();
 
   useEffect(() => {
@@ -94,13 +75,28 @@ const Index = () => {
     setIsAuthenticated(false);
     setCurrentView('signin');
     setSelectedCourse(null);
+    setCourses([]);
     setIsMenuOpen(false);
     toast.success('Successfully signed out!');
   };
 
-  const handleViewCourses = () => {
+  const handleViewCourses = async () => {
     setCurrentView('courses');
     setIsMenuOpen(false);
+    await loadCourses();
+  };
+
+  const loadCourses = async () => {
+    setIsLoadingCourses(true);
+    try {
+      const fetchedCourses = await classroomAPI.fetchCourses();
+      setCourses(fetchedCourses);
+    } catch (error) {
+      console.error('Failed to load courses:', error);
+      toast.error('Failed to load courses');
+    } finally {
+      setIsLoadingCourses(false);
+    }
   };
 
   const handleCourseSelect = (course: Course) => {
@@ -109,7 +105,7 @@ const Index = () => {
   };
 
   const handleOpenChat = (courseId: string) => {
-    const course = mockCourses.find(c => c.id === courseId);
+    const course = courses.find(c => c.id === courseId);
     if (course) {
       setSelectedCourse(course);
       setCurrentView('chat');
@@ -141,6 +137,10 @@ const Index = () => {
     }
   };
 
+  const handleRefreshCourses = async () => {
+    await loadCourses();
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'signin':
@@ -169,7 +169,7 @@ const Index = () => {
                   onClick={handleViewCourses}
                   className="w-full p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
-                  View Courses
+                  View Your Google Classroom Courses
                 </button>
               </div>
             </div>
@@ -178,10 +178,11 @@ const Index = () => {
       case 'courses':
         return (
           <CoursesList
-            courses={mockCourses}
+            courses={courses}
             onCourseSelect={handleCourseSelect}
             onBack={handleBackToMenu}
-            isLoading={false}
+            onRefresh={handleRefreshCourses}
+            isLoading={isLoadingCourses}
           />
         );
       case 'course-detail':
