@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import SignInView from '@/components/SignInView';
 import MenuView from '@/components/MenuView';
@@ -179,8 +178,10 @@ const Index = () => {
       case 'courses':
         return (
           <CoursesList
+            courses={mockCourses}
             onCourseSelect={handleCourseSelect}
             onBack={handleBackToMenu}
+            isLoading={false}
           />
         );
       case 'course-detail':
