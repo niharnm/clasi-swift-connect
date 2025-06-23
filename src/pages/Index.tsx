@@ -54,17 +54,23 @@ const Index = () => {
     setAuthError('');
     
     try {
+      console.log('Starting sign-in process...');
       const success = await authService.signInWithGoogle();
+      
       if (success) {
+        console.log('Sign-in successful, updating UI...');
         setIsAuthenticated(true);
         setCurrentView('menu');
         toast.success('Successfully signed in!');
       } else {
+        console.error('Sign-in failed');
         setAuthError('Failed to sign in. Please try again.');
+        toast.error('Sign-in failed. Please try again.');
       }
     } catch (error) {
-      setAuthError('An error occurred during sign in.');
       console.error('Sign in error:', error);
+      setAuthError('An error occurred during sign in. Please check your internet connection and try again.');
+      toast.error('Sign-in error occurred');
     } finally {
       setIsLoading(false);
     }
